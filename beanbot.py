@@ -43,8 +43,31 @@ SHOP_ITEMS = {
     "boombox": 476
 }
 
+# --- CUSTOM SHOP STOCK QUANTITIES ---
+# Restored individual item limits so they aren't all flat 5s
+BASE_SHOP_STOCK = {
+    "compromised_note": 3,
+    "paper_clip": 10,
+    "suspicious_rock": 5,
+    "bonus_beans": 8,
+    "bean_swap": 2,
+    "old_condom": 6,
+    "crusty_rubber_duck": 4,
+    "3_bean_salad": 2,
+    "strange_pill": 3,
+    "anonymous_psa": 5,
+    "box_of_temu_tiles": 8,
+    "temu_voucher": 8,
+    "big_red_button": 1,      # Ultimate items are highly limited!
+    "palm_reading": 4,
+    "crown_of_beans": 2,
+    "padlock": 3,
+    "wooden_spoon": 6,
+    "magnum_condom": 3,
+    "boombox": 2
+}
+
 # Track shop stock per server to prevent global sell-outs
-# Structure: { "server_id": { "item_name": quantity } }
 server_shop_stock = {}
 server_blackmarket_stock = {}
 
@@ -73,7 +96,8 @@ def get_server_stock(guild_id, secret=False):
         return server_blackmarket_stock[g_id]
     else:
         if g_id not in server_shop_stock:
-            server_shop_stock[g_id] = {k: 5 for k in SHOP_ITEMS.keys()}
+            # Initialize with custom unique quantities
+            server_shop_stock[g_id] = BASE_SHOP_STOCK.copy()
         return server_shop_stock[g_id]
 
 def check_server_set(server_set, guild_id, user_id):
@@ -312,21 +336,6 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
             f"An executive judgment is being prepared in the shadows. Look alive. 👀"
         )
 
-    # 📎 PAPER CLIP
-    elif item_clean == "paper_clip":
-        if not target: return await ctx.send("❌ Tag a player's vault to tamper with!")
-        consume_item(ctx.guild.id, uid, item_clean)
-        if check_server_set(locked_vaults, ctx.guild.id, uid):
-            if random.randint(1, 100) <= 50: await ctx.send(f"📎🔒 **MESSY TAMPERING!** The clip snapped off in {target.mention}'s lock mechanism. Their vault is now permanently **LOCKED**!")
-            else: await ctx.send(f"💥 **BOOM!** The clip triggered an anti-theft charge inside {target.mention}'s vault, vaporizing **15 beans**!")
-            return
-        if random.randint(1, 100) <= 50:
-            add_to_server_set(locked_vaults, ctx.guild.id, target.id)
-            await ctx.send(f"📎🔒 **MESSY TAMPERING!** The clip snapped off in {target.mention}'s lock mechanism. Their vault is now permanently **LOCKED**!")
-        else:
-            server_beans[target.id] = max(0, server_beans.get(target.id, 0) - 15)
-            await ctx.send(f"💥 **BOOM!** The clip triggered an anti-theft charge inside {target.mention}'s vault, vaporizing **15 beans**!")
-
     # 🪨 SUSPICIOUS ROCK
     elif item_clean == "suspicious_rock":
         if not target: return await ctx.send("❌ Who are you throwing this rock at?")
@@ -339,7 +348,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
             lost = random.randint(5, 20)
             if not check_server_set(locked_vaults, ctx.guild.id, target.id): 
                 server_beans[target.id] = max(0, server_beans.get(target.id, 0) - lost)
-            await ctx.send(f"💥💩 {target.mention} was startled so badly they dropped **{lost} beans** and shit themselves! This is worse than when Aunt Sally assploded in walmart and Gizmo was wrongfully banned!")
+            await ctx.send(f"💥💩 {target.mention} was startled so badly they dropped **{lost} beans** and soiled themselves!")
         else:
             if not check_server_set(locked_vaults, ctx.guild.id, uid): 
                 server_beans[uid] = max(0, server_beans.get(uid, 0) - 10)
@@ -348,7 +357,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
     # 🫘 BONUS BEANS
     elif item_clean == "bonus_beans":
         consume_item(ctx.guild.id, uid, item_clean)
-        win = random.randint(1, 5)
+        win = random.randint(1, 5) # Updated payout chance to 1-5 beans
         if not check_server_set(locked_vaults, ctx.guild.id, uid): 
             server_beans[uid] = server_beans.get(uid, 0) + win
         await ctx.send(f"🫘📈 **JACKPOT!** {ctx.author.mention} split open the seed pouch and claimed **{win} free beans**!")
@@ -427,7 +436,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
         if ctx.guild.id in locked_vaults:
             locked_vaults[ctx.guild.id].clear()
         for k in server_beans.keys(): server_beans[k] = 10
-        await ctx.send("🚨💥 **APOCALYPSE NOW!** The big red button was smashed down. Every single padlock exploded and all player assets have reset to **10 beans** flat!")
+        await ctx.send("🚨💥 **APOCALYPSE NOW! Don't shit your pants please, we want a clean village** The big red button was smashed down. Every single player shit their pants, everyone gave Gizmo 15 beans to clean this shithole up. Oh and you all have new roles, thanks for shitting on my parade.")
 
     # ✋ PALM READING
     elif item_clean == "palm_reading":
@@ -435,7 +444,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
         consume_item(ctx.guild.id, uid, item_clean)
         is_locked = "LOCKED 🔒" if check_server_set(locked_vaults, ctx.guild.id, target.id) else "UNPROTECTED 🔓"
         items = server_inv.get(target.id, [])
-        await ctx.send(f"✋🔮 **MYSTIC RESULTS:** {target.mention}'s vault is currently {is_locked}. Their stash contains: `{items}`.")
+        await ctx.send(f"✋🔮 **MYSTIC RESULTS:** {target.mention}'s role is currently... waiting for BEAN MASTER to confirm. Please hold and eat your beans in peace.")
 
     # 👑 CROWN OF BEANS
     elif item_clean == "crown_of_beans":
@@ -506,7 +515,7 @@ async def show_shop(ctx):
     """Displays items inside the Bean Bazaar using a stylized cursive layout."""
     cursive_map = str.maketrans(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-        "𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫"
+        "𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫"
     )
     
     header = "✨🛒 **𝒲ℯ𝓁𝒸ℴ𝓂ℯ 𝓉ℴ 𝓉𝒽ℯ ℬℯ𝒶𝓃 ℬ𝒶𝓏𝒶𝒶𝓇** 🛒✨\n`All items are mystery-locked & non-refundable.`\n"
