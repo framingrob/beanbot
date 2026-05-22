@@ -1,7 +1,5 @@
 import os
 import random
-import discord
-from discord.ext import commands
 
 # Initialize bot configuration with message content capabilities
 intents = discord.Intents.default()
