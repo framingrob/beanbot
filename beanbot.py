@@ -44,16 +44,16 @@ SHOP_STOCK = {
     "compromised_note": 7,
     "paper_clip": 3,
     "suspicious_rock": 2,
-    "bonus_beans": 999,
+    "bonus_beans": 999,       # UNLIMITED SUPPLY
     "bean_swap": 2,
-    "old_condom": 999,
+    "old_condom": 999,        # UNLIMITED SUPPLY
     "mystery_box": 2,
     "crusty_rubber_duck": 3,
     "3_bean_salad": 2,
     "strange_pill": 1,
     "anonymous_psa": 2,
     "box_of_temu_tiles": 1,
-    "temu_voucher": 999,
+    "temu_voucher": 999,      # UNLIMITED SUPPLY
     "big_red_button": 1,
     "palm_reading": 5,
     "crown_of_beans": 1,
@@ -162,7 +162,7 @@ async def buy_sus_item(ctx, item_name: str):
 
     # Complete the purchase safely
     player_beans[buyer_id] -= 1
-    SUS_SHOP_STOCK["engagement_ring"] = 0
+    SUS_SHOP_STOCK["engagement_ring"] = 0   # Sold out permanently
 
     divider = "💍✨" * 15
     marriage_prompt = (
@@ -203,10 +203,8 @@ async def check_bean_bank(ctx):
     inventory = player_inventories.get(player_id, [])
     
     status = "🎒"
-    if player_id in locked_vaults:
-        status = "🔒"
-    if player_id in crowned_players:
-        status = "👑"
+    if player_id in locked_vaults: status = "🔒"
+    if player_id in crowned_players: status = "👑"
     
     bean_flavors = ["pinto beans", "magic beans", "jelly beans", "suspicious beans", "baked beans"]
     flavor = random.choice(bean_flavors)
@@ -278,8 +276,7 @@ async def forage_beans(ctx):
 
 @bot.command(name="steal")
 async def steal_beans(ctx, target: discord.Member):
-    if ctx.author.id == target.id:
-        return
+    if ctx.author.id == target.id: return
     thief_id, victim_id = ctx.author.id, target.id
     
     if player_beans.get(victim_id, 0) <= 0:
@@ -348,16 +345,15 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
         await ctx.send(f"❌ You don't have a `{item_clean}` in your stash!")
         return
 
-    # 📎 PAPER CLIP (COMPLETELY DEFUSED FUNCTION)
+    # 📎 PAPER CLIP
     if item_clean == "paper_clip":
         consume_item(uid, item_clean)
         await ctx.send(f"📎... You bent the paper clip into a completely useless wire segment. It has **no operational effect** and was tossed away.")
         return
 
     # 📝 COMPROMISED NOTE
-    if item_clean == "compromised_note":
-        if not target:
-            return await ctx.send("❌ Tag a target to expose!")
+    elif item_clean == "compromised_note":
+        if not target: return await ctx.send("❌ Tag a target to expose!")
         consume_item(uid, item_clean)
         divider_line = "─" * 35
         await ctx.send(
@@ -369,36 +365,30 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
 
     # 🪨 SUSPICIOUS ROCK
     elif item_clean == "suspicious_rock":
-        if not target:
-            return await ctx.send("❌ Who are you throwing this rock at?")
+        if not target: return await ctx.send("❌ Who are you throwing this rock at?")
         consume_item(uid, item_clean)
-        if await check_shield(ctx, target):
-            return
+        if await check_shield(ctx, target): return
         roll = random.randint(1, 100)
         if roll <= 40:
             await ctx.send(f"🥴 **BAMBOOZLED!** {target.mention} took a direct hit to the skull and must speak in gibberish!")
         elif roll <= 80:
             lost = random.randint(5, 20)
-            if target.id not in locked_vaults:
-                player_beans[target.id] = max(0, player_beans.get(target.id, 0) - lost)
+            if target.id not in locked_vaults: player_beans[target.id] = max(0, player_beans.get(target.id, 0) - lost)
             await ctx.send(f"💥💩 {target.mention} was startled so badly they dropped **{lost} beans** and soiled themselves!")
         else:
-            if uid not in locked_vaults:
-                player_beans[uid] = max(0, player_beans.get(uid, 0) - 10)
+            if uid not in locked_vaults: player_beans[uid] = max(0, player_beans.get(uid, 0) - 10)
             await ctx.send(f"🦊 **GIZMO CATCH!** Gizmo caught the rock and hurled it back at {ctx.author.mention}, knocking out 10 beans!")
 
-    # 🫘 BONUS BEANS (1-5 Payout Range)
+    # 🫘 BONUS BEANS (1-5 range preference)
     elif item_clean == "bonus_beans":
         consume_item(uid, item_clean)
-        win = random.randint(1, 5)
-        if uid not in locked_vaults:
-            player_beans[uid] = player_beans.get(uid, 0) + win
+        win = random.randint(1, 5) 
+        if uid not in locked_vaults: player_beans[uid] = player_beans.get(uid, 0) + win
         await ctx.send(f"🫘📈 **JACKPOT!** {ctx.author.mention} split open the seed pouch and claimed **{win} free beans**!")
 
     # 🔄 BEAN SWAP
     elif item_clean == "bean_swap":
-        if not target:
-            return await ctx.send("❌ Who are you swapping wealth with?")
+        if not target: return await ctx.send("❌ Who are you swapping wealth with?")
         consume_item(uid, item_clean)
         if uid in locked_vaults or target.id in locked_vaults:
             await ctx.send(f"🔄🔮 **THE BALANCE FLIP!** {ctx.author.mention} and {target.mention} just completely swapped bank balances!")
@@ -410,16 +400,13 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
 
     # 🎈 OLD CONDOM
     elif item_clean == "old_condom":
-        if not target:
-            return await ctx.send("❌ Tag a target to snap!")
+        if not target: return await ctx.send("❌ Tag a target to snap!")
         consume_item(uid, item_clean)
         if random.randint(1, 100) <= 50:
-            if target.id not in locked_vaults:
-                player_beans[target.id] = max(0, player_beans.get(target.id, 0) - 5)
+            if target.id not in locked_vaults: player_beans[target.id] = max(0, player_beans.get(target.id, 0) - 5)
             await ctx.send(f"🎈💥 **SNAP!** An old balloon hit {target.mention} square in the eyes. They lost 5 beans!")
         else:
-            if uid not in locked_vaults:
-                player_beans[uid] = max(0, player_beans.get(uid, 0) - 5)
+            if uid not in locked_vaults: player_beans[uid] = max(0, player_beans.get(uid, 0) - 5)
             await ctx.send(f"💥🤦‍♂️ **BACKFIRE!** The material snapped backward hitting {ctx.author.mention} instead! Lost 5 beans.")
 
     # 🦆 CRUSTY RUBBER DUCK
@@ -429,9 +416,8 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
         keys = list(player_beans.keys())
         if len(keys) >= 3:
             targets = random.sample(keys, 3)
-            for t in targets:
-                if t not in locked_vaults:
-                    player_beans[t] = max(0, player_beans.get(t, 0) + random.choice([-5, 5]))
+            for t in targets: 
+                if t not in locked_vaults: player_beans[t] = max(0, player_beans.get(t, 0) + random.choice([-5, 5]))
             await ctx.send("🦊 **GIZMO CHAOS:** Gizmo ran wild and modified the balances of 3 random participants!")
 
     # 🥗 3 BEAN SALAD
@@ -442,18 +428,15 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
     elif item_clean == "strange_pill":
         consume_item(uid, item_clean)
         if random.randint(1, 100) <= 50:
-            if uid not in locked_vaults:
-                player_beans[uid] *= 2
+            if uid not in locked_vaults: player_beans[uid] *= 2
             await ctx.send(f"💊⚡ **CRITICAL SURGE!** {ctx.author.mention}'s total bean vault value just **DOUBLED**!")
         else:
-            if uid not in locked_vaults:
-                player_beans[uid] = 0
+            if uid not in locked_vaults: player_beans[uid] = 0
             await ctx.send(f"🤮💀 **OVERDOSE!** The chemical compounds rejected {ctx.author.mention}. Their bank value has crashed down to **0**!")
 
     # 📢 ANONYMOUS PSA
     elif item_clean == "anonymous_psa":
-        if not extra:
-            return await ctx.send("❌ Include a broadcast message!")
+        if not extra: return await ctx.send("❌ Include a broadcast message!")
         consume_item(uid, item_clean)
         await ctx.message.delete()
         await ctx.send(f"📢🗣️ **ANONYMOUS BROADCAST:** *\"{extra}\"*")
@@ -462,8 +445,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
     elif item_clean in ["box_of_temu_tiles", "temu_voucher", "mystery_box"]:
         consume_item(uid, item_clean)
         reward = random.choice(list(SHOP_ITEMS.keys()))
-        if uid not in player_inventories:
-            player_inventories[uid] = []
+        if uid not in player_inventories: player_inventories[uid] = []
         player_inventories[uid].append(reward)
         await ctx.send(f"🎟️🛍️ **MYSTERY RE-ROLL:** {ctx.author.mention} cashed in their cheap junk and unlocked: **{reward.replace('_', ' ').capitalize()}**!")
 
@@ -471,14 +453,12 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
     elif item_clean == "big_red_button":
         consume_item(uid, item_clean)
         locked_vaults.clear()
-        for k in player_beans.keys():
-            player_beans[k] = 10
+        for k in player_beans.keys(): player_beans[k] = 10
         await ctx.send("🚨💥 **APOCALYPSE NOW!** Every single padlock exploded and all player assets have reset to **10 beans** flat!")
 
     # ✋ PALM READING
     elif item_clean == "palm_reading":
-        if not target:
-            return await ctx.send("❌ Tag a player to spy on!")
+        if not target: return await ctx.send("❌ Tag a player to spy on!")
         consume_item(uid, item_clean)
         is_locked = "LOCKED 🔒" if target.id in locked_vaults else "UNPROTECTED 🔓"
         items = player_inventories.get(target.id, [])
@@ -498,8 +478,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
 
     # 🥄 WOODEN SPOON
     elif item_clean == "wooden_spoon":
-        if not target:
-            return await ctx.send("❌ Tag a player to hit!")
+        if not target: return await ctx.send("❌ Tag a player to hit!")
         consume_item(uid, item_clean)
         if uid in locked_vaults or target.id in locked_vaults:
             await ctx.send(f"🥄💥 **WHACK!** {ctx.author.mention} smacked {target.mention} and swiped exactly **2 beans**!")
@@ -516,49 +495,30 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
 
     # 📻 BOOMBOX
     elif item_clean == "boombox":
-        if not target:
-            return await ctx.send("❌ Tag a target to deafen!")
+        if not target: return await ctx.send("❌ Tag a target to deafen!")
         consume_item(uid, item_clean)
         await ctx.send(f"📻🔊 **MAX VOLUME!** {ctx.author.mention} blasted heavy bass straight into {target.mention}'s ears.")
 
 
 # =========================================================================
-# 5. THE BEAN BAZAAR MARKET INTERFACE
+# 5. THE BEAN BAZAAR MARKET INTERFACE (100% PLAIN-TEXT SYSTEM)
 # =========================================================================
 
 @bot.command(name="shop")
 async def show_shop(ctx):
-    """Displays items inside the Bean Bazaar."""
-    src_abc = "abcdefghijklmnopqrstuvwxyz"
-    src_caps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    
-    dest_abc = "𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏"
-    dest_caps = "𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵"
-    
-    font_map = {}
-    for s, d in zip(src_abc, dest_abc):
-        font_map[ord(s)] = d
-    for s, d in zip(src_caps, dest_caps):
-        font_map[ord(s)] = d
-    
-    header = "✨🛒 **Welcome to the Bean Bazaar** 🛒✨\n`All items are mystery-locked & non-refundable.`\n"
+    """Displays items inside the Bean Bazaar cleanly without any string translation bugs."""
+    header = "✨🛒 **WELCOME TO THE BEAN BAZAAR** 🛒✨\n`All items are mystery-locked & non-refundable.`\n"
     table_text = "───────────────────────────────────────\n"
     
     for item, cost in SHOP_ITEMS.items():
         stock_count = SHOP_STOCK.get(item, 0)
         clean_name = item.replace("_", " ").capitalize()
-        if stock_count == 999:
-            status_label = "Unlimited"
-        elif stock_count <= 0:
-            status_label = "Out of Stock"
-        else:
-            status_label = f"Qty: {stock_count}"
+        status_label = "Out of Stock" if stock_count <= 0 else f"Qty: {'Unlimited' if stock_count == 999 else stock_count}"
         
-        raw_row = f"{clean_name} -- {cost} bns ({status_label})\n"
-        table_text += raw_row.translate(font_map)
+        table_text += f"{clean_name} ── {cost} bns ({status_label})\n"
         
     table_text += "───────────────────────────────────────\n"
-    footer = "Buy items with: `!buy [item_name]`"
+    footer = "🛍️ **To purchase an item, use:** `!buy [item_name]`"
     await ctx.send(header + table_text + footer)
 
 
@@ -579,14 +539,14 @@ async def buy_item(ctx, item_name: str):
         player_inventories[buyer_id] = []
         
     if item_clean in player_inventories[buyer_id]:
-        await ctx.send(f"🛑 You already have a copy! Max 1 per player.")
+        await ctx.send(f"🛑 **Inventory Bound!** You already have a copy! Max 1 per player.")
         return
         
     item_cost = SHOP_ITEMS[item_clean]
     current_balance = player_beans.get(buyer_id, 0)
     
     if current_balance < item_cost:
-        await ctx.send(f"🙅 You can't afford that. Costs `{item_cost} beans`.")
+        await ctx.send(f"🙅‍♂️ You can't afford that item. Costs `{item_cost} beans`.")
         return
         
     player_beans[buyer_id] -= item_cost
@@ -600,24 +560,24 @@ async def buy_item(ctx, item_name: str):
 
 
 # =========================================================================
-# 6. SECONDARY SHOP EXCHANGES
+# 6. SECONDARY SHOP EXCHANGES & COMBAT ENGINES
 # =========================================================================
 
 @bot.command(name="blackmarket")
 async def show_secret_shop(ctx):
-    header = "🕵️ **THE UNDERGROUND BLACK MARKET** 🕵️\n"
-    table_text = "```\n"
-    table_text += f"Item                 | Price      | Stock\n"
+    header = "🕵️‍♂️🤫 **THE UNDERGROUND BLACK MARKET** 🤫🕵️‍♂️\n`Transactions are completely unrecorded.`\n"
+    table_text = "```md\n"
+    table_text += f"{'Secret Item':<20} | {'Price':<10} | {'Stock':<8}\n"
     table_text += "─" * 44 + "\n"
     
     for item, cost in SECRET_SHOP_ITEMS.items():
         stock_count = SECRET_SHOP_STOCK.get(item, 0)
         clean_name = item.replace("_", " ").capitalize()
         status_label = "DEPLETED" if stock_count <= 0 else f"Qty: {stock_count}"
-        table_text += f"{clean_name:<20} | {cost:<10} | {status_label:<8}\n"
+        table_text += f"{clean_name:<20} | {cost:<10} bns | {status_label:<8}\n"
         
     table_text += "```\n"
-    footer = "Buy with: `!shadowbuy [item_name]`"
+    footer = "🛍️ **To buy from the shadows, use:** `!shadowbuy [item_name]`"
     await ctx.send(header + table_text + footer)
 
 
@@ -638,14 +598,14 @@ async def buy_secret_item(ctx, item_name: str):
         player_inventories[buyer_id] = []
         
     if item_clean in player_inventories[buyer_id]:
-        await ctx.send("🛑 You already have one!")
+        await ctx.send("🛑 You already have one of these items!")
         return
         
     item_cost = SECRET_SHOP_ITEMS[item_clean]
     current_balance = player_beans.get(buyer_id, 0)
     
     if current_balance < item_cost:
-        await ctx.send(f"🕵️ Come back when you're serious.")
+        await ctx.send(f"🕵️‍♂️ *\"Come back when you're serious.\"*")
         return
         
     player_beans[buyer_id] -= item_cost
@@ -653,7 +613,7 @@ async def buy_secret_item(ctx, item_name: str):
     SECRET_SHOP_STOCK[item_clean] -= 1
     
     clean_name = item_clean.replace('_', ' ').capitalize()
-    await ctx.send(f"🤫 {ctx.author.mention} smuggled out a **{clean_name}**! 💸")
+    await ctx.send(f"🤫 *An exchange is made in the dark.* {ctx.author.mention} smuggled out a **{clean_name}**! 💸")
 
 
 @bot.command(name="use_salad")
@@ -665,7 +625,7 @@ async def use_salad(ctx, target1: discord.Member, target2: discord.Member, targe
 
     targets = [target1, target2, target3]
     if len(set(targets)) < 3 or buyer_id in [t.id for t in targets]:
-        await ctx.send("❌ Three unique victims required!")
+        await ctx.send("❌ Three completely unique victims are required!")
         return
 
     consume_item(buyer_id, "3_bean_salad")
@@ -675,9 +635,9 @@ async def use_salad(ctx, target1: discord.Member, target2: discord.Member, targe
     for t in targets:
         if t.id in shielded_players:
             shielded_players.remove(t.id)
-            reports.append(f"• {t.mention} deflected with a shield!")
+            reports.append(f"• {t.mention} deflected the blast using a `Magnum condom` shield!")
         else:
-            reports.append(f"• {t.mention} infected with **Beanorrhea**!")
+            reports.append(f"• {t.mention} got hit directly and is now fully infected with **Beanorrhea**!")
             
     await ctx.send(f"🥗☣️ **THE 3 BEAN SALAD ASSAULT:**\n" + "\n".join(reports))
 
@@ -686,19 +646,19 @@ async def use_salad(ctx, target1: discord.Member, target2: discord.Member, targe
 @commands.has_role("Bean Master")
 async def terminate_match(ctx):
     if not player_beans:
-        await ctx.send("🏁 **Game Over!** No data!")
+        await ctx.send("🏁 **Game Over!** Zero data recorded!")
         return
 
     sorted_players = sorted(player_beans.items(), key=lambda item: item[1], reverse=True)
     divider_line = "─" * 35
-    summary = f"🏁🏆 **MATCH CONCLUDED!** 🏆🏁\n{divider_line}\n"
+    summary = f"🏁🏆 **THE MATCH HAS CONCLUDED!** 🏆🏁\n{divider_line}\n"
     
     for rank, (user_id, beans) in enumerate(sorted_players, start=1):
         try:
             member = await ctx.guild.fetch_member(user_id)
             mention_tag = member.mention
         except discord.NotFound:
-            mention_tag = f"(<@{user_id}>)"
+            mention_tag = f"Rogue Soul (<@{user_id}>)"
             
         icon = {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, "🔹")
         summary += f"{icon} {mention_tag} — `{beans} beans`\n"
@@ -706,24 +666,26 @@ async def terminate_match(ctx):
     await ctx.send(summary + f"\n{divider_line}\nUntil next round... 🫘💥")
 
 
+# --- ADMINISTRATIVE MASTER SHORTHANDS ---
 @bot.command(name="add")
 @commands.has_role("Bean Master")
 async def quick_add(ctx, member: discord.Member, amount: int):
     player_beans[member.id] = player_beans.get(member.id, 0) + amount
-    await ctx.send(f"🪙 Added {amount} to {member.mention}!")
+    await ctx.send(f"🪙 **Added:** Transferred {amount} to {member.mention}!")
 
 
 @bot.command(name="strip")
 @commands.has_role("Bean Master")
 async def quick_strip(ctx, member: discord.Member, amount: int):
     player_beans[member.id] = max(0, player_beans.get(member.id, 0) - amount)
-    await ctx.send(f"🪓 Stripped {amount} from {member.mention}!")
+    await ctx.send(f"🪓 **Stripped:** Confiscated {amount} from {member.mention}!")
 
 
 @forage_beans.error
 async def cooldown_logs(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"⏳ Wait {int(error.retry_after // 60)} minutes!")
+        await ctx.send(f"⏳ Wait **{int(error.retry_after // 60)} minutes** before foraging again!")
 
 
 bot.run(os.environ.get("DISCORD_TOKEN"))
+
