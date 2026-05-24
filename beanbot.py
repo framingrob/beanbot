@@ -38,8 +38,8 @@ SHOP_ITEMS = {
     "3_bean_salad": 367,
     "strange_pill": 294,
     "anonymous_psa": 66,
-    "box_of_temu_tiles": 7,
-    "temu_voucher": 7,
+    "box_of_temu_tiles": 0,
+    "temu_voucher": 0,
     "big_red_button": 999,
     "palm_reading": 93,
     "crown_of_beans": 418,
@@ -69,8 +69,8 @@ SHOP_STOCK = {
     "3_bean_salad": 2,
     "strange_pill": 1,
     "anonymous_psa": 2,
-    "box_of_temu_tiles": 0,       # 🛑 EXPLOIT FROZEN: Out of stock
-    "temu_voucher": 0,            # 🛑 EXPLOIT FROZEN: Out of stock
+    "box_of_temu_tiles": 0,       # 🛑 EXPLOIT FROZEN
+    "temu_voucher": 0,            # 🛑 EXPLOIT FROZEN
     "big_red_button": 1,
     "palm_reading": 5,
     "crown_of_beans": 1,
@@ -619,7 +619,7 @@ async def use_item_router(ctx, item_name: str, target: discord.Member = None, *,
 
 
 # =========================================================================
-# 5. THE BEAN BAZAAR MARKET INTERFACE (🔤 STANDARD FONT ENGAGED)
+# 5. THE BEAN BAZAAR MARKET INTERFACE (🔤 STANDARD MONOSPACE)
 # =========================================================================
 
 @bot.command(name="shop")
@@ -702,8 +702,7 @@ async def show_secret_shop(ctx):
         status_label = "DEPLETED" if stock_count <= 0 else f"Qty: {stock_count}"
         table_text += f"{clean_name:<20} | {cost:<10} | {status_label:<8}\n"
         
-    table_text += "
-```\n"
+    table_text += "```\n"
     footer = "Buy with: `!shadowbuy [item_name]`"
     await ctx.send(header + table_text + footer)
 
@@ -823,7 +822,6 @@ async def admin_give_bean(ctx, member: discord.Member, amount: int):
 @bot.command(name="removeitem")
 @commands.has_role("Bean Master")
 async def admin_remove_item(ctx, member: discord.Member, item_name: str):
-    """🛠️ Force strips exploitative junk directly out of a player's stash."""
     item_clean = item_name.strip().lower()
     if member.id in player_inventories and item_clean in player_inventories[member.id]:
         player_inventories[member.id].remove(item_clean)
@@ -835,7 +833,6 @@ async def admin_remove_item(ctx, member: discord.Member, item_name: str):
 @bot.command(name="additem")
 @commands.has_role("Bean Master")
 async def admin_add_item(ctx, member: discord.Member, item_name: str):
-    """🛠️ Force-injects any item directly into a user stash to fix glitches, regardless of shop inventory limits."""
     item_clean = item_name.strip().lower()
     if member.id not in player_inventories:
         player_inventories[member.id] = []
@@ -847,10 +844,7 @@ async def admin_add_item(ctx, member: discord.Member, item_name: str):
 @bot.command(name="penalty")
 @commands.has_role("Bean Master")
 async def admin_arrest_penalty(ctx, member: discord.Member):
-    """🚨 Locks player into an 'arrested' status block and strips a chaotic fine range of 1-150 beans."""
     fine = random.randint(1, 150)
-    
-    # Padlock safety verification (Skip fine modification if balance is locked, but apply arrest state)
     if member.id in locked_vaults:
         fine = 0
         
@@ -877,4 +871,3 @@ async def cooldown_logs(ctx, error):
 
 
 bot.run(os.environ.get("DISCORD_TOKEN"))
-
