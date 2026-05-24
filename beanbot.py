@@ -869,5 +869,65 @@ async def cooldown_logs(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f"⏳ **COOLDOWN ACTIVE:** Hold your horses! You must wait another `{int(error.retry_after // 60)}`m `{int(error.retry_after % 60)}`s before executing that action again!")
 
+@bot.command(name="guilty")
+@commands.has_role("Bean Master")
+async def court_verdict_guilty(ctx, member: discord.Member):
+    divider = "🔨⚖️" * 10
+    punishments = [
+        "sentenced to 24 hours of peeling wet chickpeas in the town square!",
+        "forced to eat nothing but cold, unseasoned lima beans until the next full moon!",
+        "condemned to the back of the pantry! May the weevils have mercy on your soul.",
+        "sentenced to public humiliation! You must wear a giant sign that reads: 'I AM A SOUR JELLY BEAN.'",
+        "banished from the Bean Bazaar! Your assets are officially considered an abomination unto Judge Gizmo."
+    ]
+    puns = [
+        "You have been *bean-dicted* on all counts!",
+        "The evidence is *un-bean-lievable*!",
+        "You’ve *spilled the beans* for the last time!",
+        "There is no *refrying* the truth!",
+        "You are a *pinto-sized* criminal and justice will be served!"
+    ]
+    
+    verdict_text = (
+        f"\n{divider}\n"
+        f"🧑‍⚖️🔨 **THE VERDICT IS IN: GUILTY AS CHARGED!** 🔨🧑‍⚖️\n{divider}\n"
+        f"The Honorable Judge Gizmo slams his heavy wooden spoon down!\n\n"
+        f"💥 *\"{random.choice(puns)}\"* \n\n"
+        f"⚖️ {member.mention}, this court finds your actions absolutely indefensible. You are hereby {random.choice(punishments)}\n\n"
+        f"👉 **Take them away!** 🚨⛓️\n"
+        f"{divider}\n"
+    )
+    await ctx.send(verdict_text)
+
+
+@bot.command(name="innocent")
+@commands.has_role("Bean Master")
+async def court_verdict_innocent(ctx, member: discord.Member):
+    divider = "🕊️⚖️" * 10
+    celebrations = [
+        "The defense team is throwing a massive edamame party in the corridors!",
+        "An absolute *can-tastic* victory for basic human rights!",
+        "The prosecution is in tears, throwing raw coffee beans at the jury out of pure spite!",
+        "Judge Gizmo dismisses the charges and awards you a metaphorical golden pod!",
+        "The village celebrates! You walk out of this courtroom a free and un-compromised legume!"
+    ]
+    puns = [
+        "The charges are completely *void of bean-substance*!",
+        "You have proven that you are a *human bean* of pure integrity!",
+        "This case was a total *stalking* horse! Dismissed!",
+        "You are *cool as a jelly bean* under pressure!",
+        "The prosecution's argument was completely *half-baked*!"
+    ]
+    
+    verdict_text = (
+        f"\n{divider}\n"
+        f"🧑‍⚖️🕊️ **THE VERDICT IS IN: NOT GUILTY!** 🕊️🧑‍⚖️\n{divider}\n"
+        f"Judge Gizmo wipes a tear from his eye and raises his gavel in celebration!\n\n"
+        f"✨ *\"{random.choice(puns)}\"* \n\n"
+        f"🎉 {member.mention}, you have been completely exonerated of all grand larceny charges! {random.choice(celebrations)}\n\n"
+        f"🤝 **You are free to forage another day!** 🌳\n"
+        f"{divider}\n"
+    )
+    await ctx.send(verdict_text)
 
 bot.run(os.environ.get("DISCORD_TOKEN"))
